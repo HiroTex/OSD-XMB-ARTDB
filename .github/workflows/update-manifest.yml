@@ -1,0 +1,38 @@
+# .github/workflows/update-manifest.yml
+name: Update Game Manifest
+
+on:
+  push:
+    paths-ignore:
+      - 'manifest.txt'
+      - 'manifest.json'
+      - '.github/**'
+  workflow_dispatch:   # ✅ allows manual trigger
+
+permissions:
+  contents: write   # ✅ allow committing the manifest
+
+jobs:
+  generate-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Gather game IDs
+        run: |
+          # List top-level directories (ignore .git and .github)
+          find . -maxdepth 1 -type d ! -path . ! -path ./.git ! -path ./.github \
+            | sed 's|^\./||' | sort > manifest.txt
+
+          # Also create JSON version
+          jq -R -s -c '{ games: split("\n")[:-1] }' manifest.txt > manifest.json
+
+      - name: Commit and push manifest if changed
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Update game manifest"
+          file_pattern: |
+            manifest.txt
+            manifest.json
+          branch: main
