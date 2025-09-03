@@ -1,9 +1,16 @@
+# .github/workflows/update-manifest.yml
 name: Update Game Manifest
 
 on:
   push:
     paths:
-      - '**/*'
+      - '*/**'      # watch all first-level dirs and their content
+      - '!manifest.txt'
+      - '!manifest.json'
+      - '!.github/**'
+
+permissions:
+  contents: write   # ✅ allow pushing commits
 
 jobs:
   generate-manifest:
@@ -14,7 +21,7 @@ jobs:
 
       - name: Gather game IDs
         run: |
-          # List top-level directories (assuming each game ID is a directory)
+          # List top-level directories (ignoring .github, .git, etc.)
           find . -maxdepth 1 -type d ! -path . ! -path ./.github | sed 's|^\./||' \
             | sort > manifest.txt
 
