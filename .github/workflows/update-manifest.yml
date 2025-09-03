@@ -7,10 +7,10 @@ on:
       - 'manifest.txt'
       - 'manifest.json'
       - '.github/**'
-  workflow_dispatch:   # ✅ allows manual trigger
+  workflow_dispatch:
 
 permissions:
-  contents: write   # ✅ allow committing the manifest
+  contents: write
 
 jobs:
   generate-manifest:
@@ -21,11 +21,10 @@ jobs:
 
       - name: Gather game IDs
         run: |
-          # List top-level directories (ignore .git and .github)
-          find . -maxdepth 1 -type d ! -path . ! -path ./.git ! -path ./.github \
-            | sed 's|^\./||' | sort > manifest.txt
+          # List only subdirectories (one level deep) inside PS1 and PS2
+          find PS1 PS2 -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort > manifest.txt
 
-          # Also create JSON version
+          # Create JSON version
           jq -R -s -c '{ games: split("\n")[:-1] }' manifest.txt > manifest.json
 
       - name: Commit and push manifest if changed
